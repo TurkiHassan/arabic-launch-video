@@ -1,0 +1,15 @@
+{
+  "name": "arabic-launch-video",
+  "description": "إعلانات فيديو عربية بتعليق صوتي فصيح — Arabic launch videos with a فصحى voiceover.",
+  "owner": {
+    "name": "Turki Hassan",
+    "url": "https://github.com/TurkiHassan"
+  },
+  "plugins": [
+    {
+      "name": "arabic-launch-video",
+      "source": "./",
+      "description": "/arabic-launch-video (full ad) and /arabic-voiceover (Arabic narration on your own video)."
+    }
+  ]
+}

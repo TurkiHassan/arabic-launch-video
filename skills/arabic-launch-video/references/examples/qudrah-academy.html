@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>أكاديمية قُدرة — إعلان</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="audio-bass.js"></script>
+    <style>
+      @font-face { font-family: "Thmanyah Serif"; src: url("assets/fonts/thmanyahserifdisplay-Medium.woff2") format("woff2"); font-weight: 500; }
+      @font-face { font-family: "Thmanyah Serif"; src: url("assets/fonts/thmanyahserifdisplay-Bold.woff2") format("woff2"); font-weight: 700; }
+      @font-face { font-family: "Thmanyah Serif"; src: url("assets/fonts/thmanyahserifdisplay-Black.woff2") format("woff2"); font-weight: 900; }
+      @font-face { font-family: "Thmanyah Sans"; src: url("assets/fonts/thmanyahsans-Regular.woff2") format("woff2"); font-weight: 400; }
+      @font-face { font-family: "Thmanyah Sans"; src: url("assets/fonts/thmanyahsans-Medium.woff2") format("woff2"); font-weight: 500; }
+      @font-face { font-family: "Thmanyah Sans"; src: url("assets/fonts/thmanyahsans-Bold.woff2") format("woff2"); font-weight: 700; }
+
+      :root {
+        --pine-950: #0e1b14;
+        --pine-900: #16281e;
+        --pine-800: #1f3428;
+        --pine-700: #2a4536;
+        --teal-600: #264c4b;
+        --teal-400: #4a7d7b;
+        --cream-50: #f7f5ef;
+        --cream-100: #f2f1ec;
+        --cream-200: #ece3d0;
+        --rose-300: #eacbb2;
+        --rose-400: #d9b498;
+        --rose-500: #d4a98c;
+        --rose-700: #9a6b52;
+        --graphite-900: #1c2320;
+        --graphite-600: #48544d;
+        --correct: #365d3a;
+        --correct-bg: #e3eee3;
+        --wrong: #8f3f2f;
+        --wrong-bg: #f4e4e1;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--pine-950); color: var(--cream-100); font-family: "Thmanyah Sans", sans-serif; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--pine-950); }
+      .clip { position: absolute; inset: 0; }
+      .inner { position: absolute; inset: 0; direction: rtl; }
+      .serif { font-family: "Thmanyah Serif", serif; }
+      .ln { display: block; }
+      .ltr { direction: ltr; unicode-bidi: isolate; display: inline-block; }
+
+      /* ───────── persistent background (seen from 7.1s, under the Blender plates) ───────── */
+      #bg { z-index: 0; }
+      #bg .grid {
+        position: absolute; inset: -120px;
+        background-image:
+          linear-gradient(to left, rgba(236, 227, 208, 0.09) 2px, transparent 2px),
+          linear-gradient(to bottom, rgba(236, 227, 208, 0.09) 2px, transparent 2px);
+        background-size: 112px 112px;
+      }
+      #bg .glow { position: absolute; border-radius: 50%; }
+      #glow-rose { width: 1400px; height: 1400px; left: -520px; top: -380px; background: radial-gradient(circle, rgba(212, 169, 140, 0.34) 0%, rgba(212, 169, 140, 0.1) 40%, rgba(14, 27, 20, 0) 70%); }
+      #glow-teal { width: 1500px; height: 1500px; right: -640px; bottom: -560px; background: radial-gradient(circle, rgba(74, 125, 123, 0.42) 0%, rgba(38, 76, 75, 0.14) 42%, rgba(14, 27, 20, 0) 70%); }
+      #vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 45%, rgba(14, 27, 20, 0) 45%, rgba(8, 16, 11, 0.7) 100%); }
+
+      /* ───────── Blender plates ───────── */
+      #ascent-wrap { position: absolute; inset: 0; z-index: 1; }
+      #ascent { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; object-fit: cover; }
+      #badge-wrap { position: absolute; left: 0; top: 60px; width: 1080px; height: 1080px; z-index: 6; }
+      #badge { position: absolute; left: 0; top: 0; width: 1080px; height: 1080px; }
+      #mark-wrap { position: absolute; left: 90px; top: 150px; width: 900px; height: 900px; z-index: 11; }
+      #mark { position: absolute; left: 0; top: 0; width: 900px; height: 900px; }
+
+      /* ───────── foreground HUD ───────── */
+      #hud { z-index: 20; pointer-events: none; }
+      .reg { position: absolute; width: 44px; height: 44px; }
+      .reg::before, .reg::after { content: ""; position: absolute; background: var(--rose-500); }
+      .reg::before { width: 44px; height: 3px; top: 20px; left: 0; }
+      .reg::after { width: 3px; height: 44px; left: 20px; top: 0; }
+      #reg-tl { left: 44px; top: 44px; }
+      #reg-tr { right: 44px; top: 44px; }
+      #reg-bl { left: 44px; bottom: 44px; }
+      #reg-br { right: 44px; bottom: 44px; }
+      #brand { position: absolute; top: 96px; right: 110px; display: flex; align-items: center; gap: 16px; direction: rtl; font-size: 34px; font-weight: 700; color: var(--cream-100); }
+      #brand img { width: 58px; height: 58px; display: block; }
+      #fig { position: absolute; top: 108px; left: 110px; font-size: 24px; font-weight: 500; letter-spacing: 0.16em; color: var(--rose-400); direction: ltr; height: 34px; width: 420px; }
+      #fig span { position: absolute; left: 0; top: 0; white-space: nowrap; }
+      #ticks { position: absolute; left: 110px; right: 110px; bottom: 104px; height: 22px; display: flex; flex-direction: row-reverse; justify-content: space-between; align-items: flex-end; }
+      #ticks i { display: block; width: 8px; height: 22px; background: rgba(236, 227, 208, 0.28); }
+      #grain {
+        position: absolute; inset: 0; opacity: 0.16; mix-blend-mode: overlay; z-index: 30;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.9  0 0 0 0 0.85  0 0 0 0 0.8  0 0 0 0.6 0'/></filter><rect width='240' height='240' filter='url(%23n)'/></svg>");
+      }
+      #flash { position: absolute; inset: 0; z-index: 25; background: radial-gradient(circle at 50% 62%, rgba(250, 236, 222, 0.95) 0%, rgba(217, 180, 152, 0.55) 30%, rgba(14, 27, 20, 0) 72%); opacity: 0; }
+
+      /* scene wipe panels */
+      #wipe { position: absolute; inset: 0; z-index: 24; }
+      #wipe-edge { position: absolute; top: 0; bottom: 0; right: 0; width: 1080px; background: var(--rose-400); transform-origin: right center; }
+      #wipe-panel { position: absolute; top: 0; bottom: 0; right: 0; width: 1080px; background: var(--pine-900); transform-origin: right center; }
+
+      /* shared */
+      .kicker { display: flex; align-items: center; gap: 20px; font-size: 36px; font-weight: 500; letter-spacing: 0.02em; color: var(--rose-400); }
+      .kicker::before { content: ""; width: 70px; height: 3px; background: var(--rose-500); display: block; }
+      .scrim-b { position: absolute; left: 0; right: 0; bottom: 0; height: 1060px; background: linear-gradient(to top, rgba(10, 20, 14, 0.96) 0%, rgba(10, 20, 14, 0.86) 45%, rgba(10, 20, 14, 0) 100%); }
+      .scrim-t { position: absolute; left: 0; right: 0; top: 0; height: 760px; background: linear-gradient(to bottom, rgba(10, 20, 14, 0.9) 0%, rgba(10, 20, 14, 0.62) 55%, rgba(10, 20, 14, 0) 100%); }
+
+      /* ───────── S1 hook ───────── */
+      #s1 { z-index: 10; }
+      #s1-head { position: absolute; top: 260px; right: 100px; left: 100px; }
+      #s1-l1 { font-size: 150px; font-weight: 700; line-height: 1.2; color: var(--cream-100); }
+      #s1-l2 { font-size: 330px; font-weight: 900; line-height: 1.15; color: var(--rose-400); margin-top: 60px; transform-origin: 70% 55%; }
+      #s1-rule { position: absolute; top: 250px; right: 60px; width: 4px; height: 620px; background: var(--rose-500); transform-origin: center top; }
+
+      /* ───────── S2 reveal ───────── */
+      #s2-scrim { height: 980px; background: linear-gradient(to bottom, rgba(10, 20, 14, 0.94) 0%, rgba(10, 20, 14, 0.84) 58%, rgba(10, 20, 14, 0) 100%); }
+      #s2 { z-index: 10; }
+      #s2-head { position: absolute; top: 230px; right: 100px; left: 100px; }
+      #s2-title { font-size: 150px; font-weight: 900; line-height: 1.12; margin-top: 26px; display: flex; gap: 34px; }
+      #s2-title span { display: block; }
+      #s2-t2 { color: var(--rose-400); }
+      #s2-sub { font-size: 44px; color: var(--cream-200); margin-top: 22px; }
+      #s2-underline { height: 5px; width: 640px; background: var(--rose-500); margin-top: 26px; transform-origin: right center; }
+      #s2-stats { position: absolute; left: 100px; right: 100px; bottom: 230px; display: flex; border-top: 3px solid rgba(236, 227, 208, 0.22); border-bottom: 3px solid rgba(236, 227, 208, 0.22); }
+      .stat { flex: 1; padding: 44px 10px 40px; text-align: center; }
+      .stat + .stat { border-right: 3px solid rgba(236, 227, 208, 0.18); }
+      .stat .n { font-size: 150px; font-weight: 900; line-height: 1; color: var(--rose-400); display: block; }
+      .stat .l { font-size: 34px; color: var(--cream-200); margin-top: 20px; display: block; }
+      #s2-tracks { position: absolute; left: 100px; right: 100px; bottom: 120px; display: flex; gap: 24px; justify-content: center; }
+      #s2-tracks span { display: block; padding: 14px 34px; border: 3px solid rgba(236, 227, 208, 0.35); border-radius: 4px; font-size: 32px; font-weight: 700; color: var(--cream-100); }
+
+      /* ───────── S3 lab ───────── */
+      #s3 { z-index: 10; }
+      #s3-head { position: absolute; top: 220px; right: 100px; left: 100px; }
+      #s3-title { font-size: 128px; font-weight: 900; line-height: 1.15; margin-top: 24px; }
+      #s3-title .r { color: var(--rose-400); }
+      #s3-stage { position: absolute; left: 70px; right: 70px; top: 680px; height: 1000px; }
+      #s3-card { position: absolute; inset: 0; background: var(--cream-50); border-radius: 6px; color: var(--graphite-900); padding: 56px 60px; box-shadow: 0 60px 120px rgba(0, 0, 0, 0.45), 0 0 0 3px rgba(212, 169, 140, 0.5); }
+      .lab-tag { display: flex; justify-content: space-between; align-items: center; font-size: 30px; font-weight: 700; color: var(--graphite-600); }
+      .lab-tag b { color: var(--pine-900); font-size: 38px; }
+      .lab-tag .pill { padding: 8px 20px; background: var(--pine-950); color: var(--rose-400); border-radius: 3px; font-size: 26px; }
+      .lab-lbl { font-size: 28px; font-weight: 700; color: var(--graphite-600); margin-top: 40px; margin-bottom: 14px; }
+      #s3-input { height: 140px; border-radius: 4px; border: 3px solid rgba(31, 52, 40, 0.25); background: #fff; display: flex; align-items: center; justify-content: flex-start; padding: 0 40px; direction: ltr; font-size: 96px; font-weight: 700; color: var(--pine-950); position: relative; }
+      #s3-input .d { display: block; }
+      #s3-tail { display: flex; position: relative; }
+      #s3-tail-hl { position: absolute; left: -8px; right: -8px; top: 6px; bottom: 6px; background: rgba(212, 169, 140, 0.4); border-bottom: 6px solid var(--rose-700); }
+      #s3-caret { width: 6px; height: 90px; background: var(--pine-950); margin-left: 8px; display: block; }
+      #s3-chips { display: flex; gap: 14px; direction: rtl; }
+      #s3-chips span { width: 98px; height: 98px; border-radius: 4px; border: 3px solid rgba(31, 52, 40, 0.22); background: #fff; display: flex; align-items: center; justify-content: center; font-size: 44px; font-weight: 700; color: var(--graphite-600); position: relative; }
+      #chip4-on { position: absolute; inset: -3px; border-radius: 4px; background: var(--pine-950); color: var(--rose-400); display: flex; align-items: center; justify-content: center; }
+      #s3-tap { position: absolute; width: 150px; height: 150px; border-radius: 50%; border: 6px solid var(--rose-500); background: rgba(212, 169, 140, 0.28); }
+      #s3-steps { margin-top: 44px; }
+      .step { display: flex; align-items: center; gap: 22px; background: var(--cream-200); border-radius: 4px; padding: 22px 30px; font-size: 38px; font-weight: 500; color: var(--graphite-900); margin-bottom: 18px; }
+      .step::before { content: ""; width: 14px; height: 14px; border-radius: 50%; background: var(--rose-700); display: block; flex: 0 0 auto; }
+      .step b { color: var(--rose-700); }
+      #s3-result { border: 3px solid rgba(54, 93, 58, 0.5); background: var(--correct-bg); color: var(--correct); border-radius: 4px; padding: 26px 24px; text-align: center; font-size: 37px; font-weight: 700; white-space: nowrap; }
+
+      /* ───────── S4 quiz ───────── */
+      #s4 { z-index: 10; }
+      #s4-head { position: absolute; top: 220px; right: 100px; left: 100px; }
+      #s4-title { font-size: 128px; font-weight: 900; line-height: 1.15; margin-top: 24px; }
+      #s4-title .r { color: var(--rose-400); }
+      #s4-card { position: absolute; left: 70px; right: 70px; top: 660px; height: 1150px; }
+      #s4-cardbg { position: absolute; inset: 0; background: var(--cream-50); border-radius: 6px; box-shadow: 0 60px 120px rgba(0, 0, 0, 0.45), 0 0 0 3px rgba(212, 169, 140, 0.5); transform-origin: center top; }
+      #s4-q { position: absolute; top: 50px; right: 56px; left: 56px; font-size: 46px; font-weight: 700; color: var(--graphite-900); display: flex; gap: 22px; align-items: center; }
+      #s4-q .num { width: 64px; height: 64px; border-radius: 3px; background: var(--pine-950); color: var(--rose-400); display: flex; align-items: center; justify-content: center; font-size: 34px; flex: 0 0 auto; }
+      .opt { position: absolute; right: 56px; left: 56px; height: 116px; border-radius: 4px; border: 3px solid rgba(31, 52, 40, 0.18); background: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; font-size: 56px; font-weight: 700; color: var(--graphite-900); }
+      .opt .mk { font-size: 52px; font-weight: 700; }
+      .opt .st { position: absolute; inset: -3px; border-radius: 4px; display: flex; align-items: center; justify-content: flex-end; padding: 0 43px; }
+      .opt .v { position: relative; z-index: 2; }
+      #o2-st { background: var(--correct-bg); border: 3px solid var(--correct); color: var(--correct); }
+      #o3-st { background: var(--wrong-bg); border: 3px solid var(--wrong); color: var(--wrong); }
+      .fb { position: absolute; right: 56px; left: 56px; border-radius: 4px; padding: 22px 30px; font-size: 34px; line-height: 1.55; font-weight: 500; border-right: 8px solid; }
+      .fb b { font-weight: 700; }
+      #fb2 { background: #e8f1e8; color: var(--correct); border-color: var(--correct); }
+      #fb3 { background: #f6e8e5; color: var(--wrong); border-color: var(--wrong); }
+      #s4-tap { position: absolute; width: 150px; height: 150px; border-radius: 50%; border: 6px solid var(--rose-500); background: rgba(212, 169, 140, 0.28); }
+
+      /* ───────── S5 medal ───────── */
+      #s5 { z-index: 5; }
+      #s5-rays { position: absolute; left: -460px; top: -400px; width: 2000px; height: 2000px; border-radius: 50%;
+        background: repeating-conic-gradient(from 0deg, rgba(217, 180, 152, 0.16) 0deg 5deg, rgba(217, 180, 152, 0) 5deg 15deg);
+        -webkit-mask-image: radial-gradient(circle, rgba(0, 0, 0, 1) 8%, rgba(0, 0, 0, 0) 58%); mask-image: radial-gradient(circle, rgba(0, 0, 0, 1) 8%, rgba(0, 0, 0, 0) 58%); }
+      #s5-halo { position: absolute; left: 90px; top: 150px; width: 900px; height: 900px; border-radius: 50%; background: radial-gradient(circle, rgba(212, 169, 140, 0.4) 0%, rgba(212, 169, 140, 0.08) 45%, rgba(14, 27, 20, 0) 70%); }
+      #s5-text { position: absolute; left: 100px; right: 100px; top: 1150px; z-index: 12; text-align: center; }
+      #s5-kicker { justify-content: center; }
+      #s5-kicker::after { content: ""; width: 70px; height: 3px; background: var(--rose-500); display: block; }
+      #s5-name { font-size: 92px; font-weight: 900; line-height: 1.2; margin-top: 22px; }
+      #s5-xp { display: flex; align-items: baseline; justify-content: center; gap: 22px; margin-top: 44px; }
+      #s5-xpn { font-size: 130px; font-weight: 900; color: var(--rose-400); line-height: 1; }
+      #s5-xpl { font-size: 42px; font-weight: 700; color: var(--cream-100); }
+      #s5-bar { margin: 34px auto 0; width: 760px; height: 18px; border-radius: 9px; background: rgba(236, 227, 208, 0.16); overflow: hidden; }
+      #s5-fill { width: 100%; height: 100%; background: var(--rose-400); transform-origin: right center; }
+      #s5-chips { display: flex; gap: 22px; justify-content: center; margin-top: 36px; }
+      #s5-chips span { display: block; padding: 16px 32px; border-radius: 4px; font-size: 34px; font-weight: 700; }
+      #s5-level { background: var(--rose-400); color: var(--pine-950); }
+      #s5-streak { border: 3px solid rgba(236, 227, 208, 0.4); color: var(--cream-100); }
+      #s5-note { font-size: 24px; color: rgba(236, 227, 208, 0.62); margin-top: 26px; }
+
+      /* ───────── S6 outro ───────── */
+      #s6 { z-index: 10; }
+      #s6-halo { position: absolute; left: 40px; top: 100px; width: 1000px; height: 1000px; border-radius: 50%; background: radial-gradient(circle, rgba(212, 169, 140, 0.3) 0%, rgba(74, 125, 123, 0.12) 45%, rgba(14, 27, 20, 0) 70%); }
+      #s6-text { position: absolute; left: 90px; right: 90px; top: 1050px; text-align: center; }
+      #s6-name { font-size: 148px; font-weight: 900; line-height: 1.12; display: flex; gap: 32px; justify-content: center; }
+      #s6-name span { display: block; }
+      #s6-n2 { color: var(--rose-400); }
+      #s6-tag { font-size: 44px; color: var(--cream-200); margin-top: 18px; }
+      #s6-cta { margin: 50px auto 0; display: flex; width: 700px; height: 124px; align-items: center; justify-content: center; gap: 20px; border-radius: 4px; background: var(--rose-400); color: var(--pine-950); font-size: 50px; font-weight: 700; }
+      #s6-free { font-size: 36px; font-weight: 700; color: var(--rose-300); margin-top: 26px; }
+      #s6-pills { display: flex; gap: 18px; justify-content: center; margin-top: 34px; }
+      #s6-pills span { display: block; padding: 12px 26px; border: 3px solid rgba(236, 227, 208, 0.35); border-radius: 4px; font-size: 30px; font-weight: 500; color: var(--cream-100); }
+      #s6-url { font-size: 34px; font-weight: 700; letter-spacing: 0.04em; color: var(--cream-100); margin-top: 34px; }
+      #s6-legal { font-size: 24px; color: rgba(236, 227, 208, 0.62); margin-top: 12px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-width="1080" data-height="1920" data-duration="26.2">
+      <!-- persistent academy ground: pine, blueprint grid, glows -->
+      <section id="bg" class="clip" data-start="0" data-duration="26.2" data-track-index="0">
+        <div class="grid" id="bg-grid" data-layout-allow-overflow></div>
+        <div id="glow-rose" class="glow" data-layout-allow-overflow></div>
+        <div id="glow-teal" class="glow" data-layout-allow-overflow></div>
+        <div id="vignette"></div>
+      </section>
+
+      <!-- Blender shot A: the ascent (0 – 7.15) -->
+      <div id="ascent-wrap">
+        <video id="ascent" src="assets/video/ascent.mp4" data-start="0" data-duration="7.15" data-track-index="1" muted playsinline></video>
+      </div>
+
+      <!-- Scene 1: hook -->
+      <section id="s1" class="clip" data-start="0" data-duration="2.95" data-track-index="2">
+        <div class="inner" id="s1-inner">
+          <div class="scrim-t" id="s1-scrim"></div>
+          <div id="s1-rule"></div>
+          <div id="s1-head">
+            <span class="ln serif" id="s1-l1">قبل أن تتدرّب،</span>
+            <span class="ln serif" id="s1-l2" data-layout-allow-overflow>تعلّم.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scene 2: reveal over the rising path -->
+      <section id="s2" class="clip" data-start="2.7" data-duration="4.5" data-track-index="3">
+        <div class="inner" id="s2-inner">
+          <div class="scrim-t" id="s2-scrim"></div>
+          <div class="scrim-b"></div>
+          <div id="s2-head">
+            <div class="kicker" id="s2-kicker">جديد في قُدرة</div>
+            <div class="serif" id="s2-title"><span id="s2-t1">أكاديمية</span><span id="s2-t2">قُدرة</span></div>
+            <div id="s2-underline"></div>
+            <div id="s2-sub">ارسم طريقك نحو القدرات، خطوةً بخطوة</div>
+          </div>
+          <div id="s2-stats">
+            <div class="stat" id="st1"><span class="n serif" id="st1-n">٠</span><span class="l">درسًا تفاعليًا</span></div>
+            <div class="stat" id="st2"><span class="n serif" id="st2-n">٠</span><span class="l">وحدة متدرّجة</span></div>
+            <div class="stat" id="st3"><span class="n serif" id="st3-n">٠</span><span class="l">مساران</span></div>
+          </div>
+          <div id="s2-tracks"><span id="tr1">المسار الكمي</span><span id="tr2">المسار اللفظي</span></div>
+        </div>
+      </section>
+
+      <!-- Scene 3: the lab -->
+      <section id="s3" class="clip" data-start="7.0" data-duration="5.3" data-track-index="4">
+        <div class="inner" id="s3-inner">
+          <div id="s3-head">
+            <div class="kicker" id="s3-kicker">في كل درس مختبر تفاعلي</div>
+            <div class="serif" id="s3-title"><span class="ln" id="s3-t1">جرّب القاعدة</span><span class="ln r" id="s3-t2">بيدك.</span></div>
+          </div>
+          <div id="s3-stage" data-layout-allow-overflow>
+            <div id="s3-card">
+              <div class="lab-tag"><b>قابلية القسمة</b><span class="pill">مختبر</span></div>
+              <div class="lab-lbl">العدد</div>
+              <div id="s3-input">
+                <span class="d" id="dg1">٧</span><span class="d" id="dg2">٥</span><span id="s3-tail"><span id="s3-tail-hl"></span><span class="d" id="dg3">١</span><span class="d" id="dg4">٦</span></span><span id="s3-caret"></span>
+              </div>
+              <div class="lab-lbl">القسمة على</div>
+              <div id="s3-chips">
+                <span>٣</span><span id="chip4">٤<i id="chip4-on">٤</i></span><span>٥</span><span>٦</span><span>٧</span><span>٨</span><span>٩</span><span>١١</span>
+              </div>
+              <div id="s3-steps">
+                <div class="step" id="step1">نأخذ الآحاد والعشرات فقط: <b>١٦</b></div>
+                <div class="step" id="step2">١٦ يقبل القسمة على ٤ (١٦ ÷ ٤ = ٤)</div>
+                <div id="s3-result">✓ نعم — ٧٥١٦ يقبل القسمة على ٤ والناتج ١٨٧٩</div>
+              </div>
+              <div id="s3-tap"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scene 4: the quiz that explains -->
+      <section id="s4" class="clip" data-start="11.9" data-duration="4.7" data-track-index="5">
+        <div class="inner" id="s4-inner">
+          <div id="s4-head">
+            <div class="kicker" id="s4-kicker">اختبار في نهاية كل درس</div>
+            <div class="serif" id="s4-title"><span class="ln" id="s4-t1">يشرح لك</span><span class="ln r" id="s4-t2">لماذا.</span></div>
+          </div>
+          <div id="s4-card">
+            <div id="s4-cardbg"></div>
+            <div id="s4-q"><span class="num">١</span><span>أي الأعداد التالية يقبل القسمة على ٤؟</span></div>
+            <div class="opt" id="o1" style="top: 160px"><span>٥١٣٤</span></div>
+            <div class="opt" id="o2" style="top: 296px"><span class="v">٧٥١٦</span><div class="st" id="o2-st"><span class="mk">✓</span></div></div>
+            <div class="fb" id="fb2" style="top: 428px"><b>لماذا صحيحة؟</b> الرقمان الأخيران ١٦، و ١٦ ÷ ٤ = ٤ بلا باقٍ ⇒ يقبل.</div>
+            <div class="opt" id="o3" style="top: 432px"><span class="v">٨٠٢٢</span><div class="st" id="o3-st"><span class="mk">✗</span></div></div>
+            <div class="fb" id="fb3" style="top: 564px"><b>لماذا خاطئة؟</b> الرقمان الأخيران ٢٢، و ٢٢ ÷ ٤ فيها باقٍ ٢ ⇒ لا يقبل رغم أن العدد زوجي.</div>
+            <div class="opt" id="o4" style="top: 568px"><span>٣٣٣٠</span></div>
+            <div id="s4-tap"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scene 5: the medal -->
+      <section id="s5" class="clip" data-start="16.25" data-duration="4.7" data-track-index="6">
+        <div class="inner" id="s5-inner">
+          <div id="s5-rays" data-layout-allow-overflow></div>
+          <div id="s5-halo" data-layout-allow-overflow></div>
+        </div>
+      </section>
+      <div id="badge-wrap">
+        <video id="badge" src="assets/video/badge.webm" data-start="16.38" data-duration="4.45" data-track-index="7" muted playsinline></video>
+      </div>
+      <div id="s5-text" dir="rtl">
+        <div class="kicker" id="s5-kicker">وسام جديد</div>
+        <div class="serif" id="s5-name">الحساب ومهاراته الذهنية</div>
+        <div id="s5-xp"><span class="serif" id="s5-xpn">+٠</span><span id="s5-xpl">نقطة خبرة</span></div>
+        <div id="s5-bar"><div id="s5-fill"></div></div>
+        <div id="s5-chips"><span id="s5-level">المستوى ٠٢ · مجتهد</span><span id="s5-streak">▲ أسبوع متصل</span></div>
+        <div id="s5-note">مثال توضيحي لإتمام الوحدة الأولى</div>
+      </div>
+
+      <!-- Scene 6: outro -->
+      <section id="s6" class="clip" data-start="20.6" data-duration="5.6" data-track-index="8">
+        <div class="inner" id="s6-inner">
+          <div id="s6-halo" data-layout-allow-overflow></div>
+          <div id="s6-text">
+            <div class="serif" id="s6-name"><span id="s6-n1">أكاديمية</span><span id="s6-n2">قُدرة</span></div>
+            <div id="s6-tag">قبل أن تتدرّب، تعلّم.</div>
+            <div id="s6-cta"><span>ابدأ من الدرس الأول</span><span>←</span></div>
+            <div id="s6-free">وحدة كاملة مجانًا في كل مسار</div>
+            <div id="s6-pills"><span id="p1">٣٤ درسًا</span><span id="p2">مختبر في كل درس</span><span id="p3">نقاط وأوسمة</span></div>
+            <div id="s6-url"><span class="ltr">iqudrah.com</span></div>
+            <div id="s6-legal">منصة تدريب مستقلة · غير تابعة لأي جهة رسمية</div>
+          </div>
+        </div>
+      </section>
+      <div id="mark-wrap">
+        <video id="mark" src="assets/video/mark.webm" data-start="20.75" data-duration="5.45" data-track-index="9" muted playsinline></video>
+      </div>
+
+      <!-- foreground HUD -->
+      <section id="hud" class="clip" data-start="0" data-duration="26.2" data-track-index="30">
+        <i class="reg" id="reg-tl"></i><i class="reg" id="reg-tr"></i><i class="reg" id="reg-bl"></i><i class="reg" id="reg-br"></i>
+        <div id="brand"><img src="assets/img/mark-top.svg" alt="" /><span>أكاديمية قُدرة</span></div>
+        <div id="fig"><span id="fig1">FIG. 01 — THE ASCENT</span><span id="fig2">FIG. 02 — THE LAB</span><span id="fig3">FIG. 03 — THE TEST</span><span id="fig4">FIG. 04 — THE MEDAL</span></div>
+        <div id="ticks"></div>
+      </section>
+      <div id="flash"></div>
+      <div id="wipe"><div id="wipe-edge"></div><div id="wipe-panel"></div></div>
+      <div id="grain"></div>
+
+      <!-- Voice: Gemini TTS, Charon, فصحى -->
+      <audio id="vo1" src="assets/voice/vo1.mp3" data-start="0.3" data-duration="1.98" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo2" src="assets/voice/vo2.mp3" data-start="2.85" data-duration="4.26" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo3" src="assets/voice/vo3.mp3" data-start="7.3" data-duration="4.37" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo4" src="assets/voice/vo4.mp3" data-start="12.2" data-duration="4.06" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo5" src="assets/voice/vo5.mp3" data-start="16.55" data-duration="4.15" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo6" src="assets/voice/vo6.mp3" data-start="20.92" data-duration="4.29" data-track-index="10" data-volume="1"></audio>
+
+      <!-- Music bed: vol-12 from 5.99s, so its lift lands on the reveal at 2.75s -->
+      <audio
+        id="music"
+        src="assets/music/bed.wav"
+        data-start="0"
+        data-duration="26.2"
+        data-track-index="11"
+        data-volume="1"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0.3},{"t":0.3,"v":0.26},{"t":2.3,"v":0.32},{"t":2.75,"v":0.55},{"t":2.9,"v":0.24},{"t":25.2,"v":0.24},{"t":25.45,"v":0.45},{"t":26.2,"v":0}]}]}'
+      ></audio>
+
+      <!-- SFX -->
+      <audio id="sfx-riser" src="assets/sfx/riser.wav" data-start="0.35" data-duration="2.4" data-track-index="12" data-volume="0.16"></audio>
+      <audio id="sfx-slam" src="assets/sfx/impactSoft_medium_004.ogg" data-start="1.4" data-duration="0.4" data-track-index="13" data-volume="0.35"></audio>
+      <audio id="sfx-drop" src="assets/sfx/impactSoft_medium_001.ogg" data-start="2.75" data-duration="0.4" data-track-index="14" data-volume="0.55"></audio>
+      <audio id="sfx-st1" src="assets/sfx/drop_002.ogg" data-start="4.38" data-duration="0.3" data-track-index="15" data-volume="0.3"></audio>
+      <audio id="sfx-st2" src="assets/sfx/drop_002.ogg" data-start="5.47" data-duration="0.3" data-track-index="16" data-volume="0.3"></audio>
+      <audio id="sfx-st3" src="assets/sfx/drop_002.ogg" data-start="6.03" data-duration="0.3" data-track-index="17" data-volume="0.3"></audio>
+      <audio id="sfx-wipe" src="assets/sfx/whoosh.wav" data-start="6.9" data-duration="0.5" data-track-index="18" data-volume="0.3"></audio>
+      <audio id="sfx-k1" src="assets/sfx/keypress-004.wav" data-start="7.75" data-duration="0.2" data-track-index="19" data-volume="0.35"></audio>
+      <audio id="sfx-k2" src="assets/sfx/keypress-007.wav" data-start="7.93" data-duration="0.2" data-track-index="20" data-volume="0.35"></audio>
+      <audio id="sfx-k3" src="assets/sfx/keypress-012.wav" data-start="8.11" data-duration="0.2" data-track-index="21" data-volume="0.35"></audio>
+      <audio id="sfx-k4" src="assets/sfx/keypress-019.wav" data-start="8.29" data-duration="0.2" data-track-index="22" data-volume="0.35"></audio>
+      <audio id="sfx-tap1" src="assets/sfx/click_003.ogg" data-start="8.74" data-duration="0.2" data-track-index="23" data-volume="0.55"></audio>
+      <audio id="sfx-step1" src="assets/sfx/card-slide-1.ogg" data-start="9.85" data-duration="0.4" data-track-index="24" data-volume="0.22"></audio>
+      <audio id="sfx-step2" src="assets/sfx/card-slide-1.ogg" data-start="10.39" data-duration="0.4" data-track-index="25" data-volume="0.22"></audio>
+      <audio id="sfx-yes" src="assets/sfx/impactGlass_light_002.ogg" data-start="10.94" data-duration="0.6" data-track-index="26" data-volume="0.4"></audio>
+      <audio id="sfx-whip" src="assets/sfx/whoosh.wav" data-start="11.85" data-duration="0.5" data-track-index="27" data-volume="0.32"></audio>
+      <audio id="sfx-tap2" src="assets/sfx/click_002.ogg" data-start="13.11" data-duration="0.2" data-track-index="28" data-volume="0.55"></audio>
+      <audio id="sfx-wrong" src="assets/sfx/error_006.ogg" data-start="13.22" data-duration="0.4" data-track-index="29" data-volume="0.16"></audio>
+      <audio id="sfx-fb3" src="assets/sfx/card-place-2.ogg" data-start="13.67" data-duration="0.4" data-track-index="31" data-volume="0.22"></audio>
+      <audio id="sfx-fb2" src="assets/sfx/card-place-2.ogg" data-start="14.76" data-duration="0.4" data-track-index="32" data-volume="0.22"></audio>
+      <audio id="sfx-zoom" src="assets/sfx/whoosh.wav" data-start="16.2" data-duration="0.5" data-track-index="33" data-volume="0.3"></audio>
+      <audio id="sfx-medal" src="assets/sfx/impactBell_heavy_000.ogg" data-start="17.47" data-duration="1.5" data-track-index="34" data-volume="0.3"></audio>
+      <audio id="sfx-xp" src="assets/sfx/chips-stack-2.ogg" data-start="18.03" data-duration="0.8" data-track-index="35" data-volume="0.28"></audio>
+      <audio id="sfx-level" src="assets/sfx/impactGlass_light_002.ogg" data-start="19.12" data-duration="0.6" data-track-index="36" data-volume="0.35"></audio>
+      <audio id="sfx-streak" src="assets/sfx/drop_002.ogg" data-start="19.66" data-duration="0.3" data-track-index="37" data-volume="0.28"></audio>
+      <audio id="sfx-iris" src="assets/sfx/whoosh.wav" data-start="20.55" data-duration="0.5" data-track-index="38" data-volume="0.28"></audio>
+      <audio id="sfx-mark" src="assets/sfx/impactBell_heavy_003.ogg" data-start="21.31" data-duration="1.5" data-track-index="39" data-volume="0.34"></audio>
+      <audio id="sfx-stamp" src="assets/sfx/impactSoft_medium_004.ogg" data-start="21.84" data-duration="0.4" data-track-index="40" data-volume="0.4"></audio>
+      <audio id="sfx-cta" src="assets/sfx/click_003.ogg" data-start="22.93" data-duration="0.2" data-track-index="41" data-volume="0.4"></audio>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const AR = "٠١٢٣٤٥٦٧٨٩";
+      const ar = (n) => String(n).replace(/[0-9]/g, (d) => AR[+d]);
+
+      // lesson ticks: 34, grouped by unit (the HUD's quiet progress bar)
+      const UNITS = [6, 4, 5, 5, 5, 3, 1, 2, 1, 1, 1];
+      const ticks = document.getElementById("ticks");
+      UNITS.forEach((n, u) => {
+        for (let j = 0; j < n; j++) {
+          const i = document.createElement("i");
+          if (j === 0) i.className = "u";
+          ticks.appendChild(i);
+        }
+      });
+      const tickEls = Array.from(ticks.children);
+
+      // ───────── background ambience ─────────
+      tl.fromTo("#bg-grid", { x: 0, y: 0 }, { x: -56, y: -112, duration: 26.2, ease: "none" }, 0);
+      tl.fromTo("#glow-rose", { x: 0, y: 0 }, { x: 160, y: 120, duration: 26.2, ease: "sine.inOut" }, 0);
+      tl.fromTo("#glow-teal", { x: 0, y: 0 }, { x: -120, y: -160, duration: 26.2, ease: "sine.inOut" }, 0);
+
+      // audio-reactive: the music's bass breathes the rosegold glow and the medal's light
+      const BASS = window.AUDIO_BASS || [];
+      for (let f = 0; f < BASS.length; f++) {
+        tl.call(
+          (function (b) {
+            return function () {
+              gsap.set("#glow-rose", { opacity: 0.6 + b * 0.4, scale: 1 + b * 0.08 });
+              gsap.set("#s5-halo", { opacity: 0.55 + b * 0.45 });
+              gsap.set("#s6-halo", { opacity: 0.6 + b * 0.4 });
+            };
+          })(BASS[f]),
+          [],
+          f / 30,
+        );
+      }
+
+      // ───────── HUD ─────────
+      tl.fromTo(".reg", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, stagger: 0.06, ease: "back.out(2)" }, 0.1);
+      tl.fromTo("#brand", { opacity: 0, y: -24 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 2.9);
+      tl.to("#brand", { opacity: 0, y: -24, duration: 0.3, ease: "power2.in" }, 20.5);
+      const figs = [["#fig1", 0.3, 6.95], ["#fig2", 7.3, 11.9], ["#fig3", 12.3, 16.25], ["#fig4", 16.7, 20.5]];
+      figs.forEach(([sel, a, b]) => {
+        tl.fromTo(sel, { opacity: 0, clipPath: "inset(0 100% 0 0)" }, { opacity: 1, clipPath: "inset(0 0% 0 0)", duration: 0.45, ease: "power2.out" }, a);
+        tl.to(sel, { opacity: 0, duration: 0.2, ease: "power1.in" }, b);
+      });
+      // ticks light one per lesson as the tiles rise (2.75 → 5.2), then the unit-1 six glow
+      tl.fromTo("#ticks", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power1.out" }, 2.8);
+      // beat-grid-free: one tick per rising tile (2.75s + i × 0.072s), seek-safe tweens
+      tickEls.forEach((el, i) => {
+        tl.fromTo(el, { backgroundColor: "rgba(236, 227, 208, 0.28)", scaleY: 0.5 }, { backgroundColor: "#d9b498", scaleY: 1, duration: 0.12, ease: "power2.out" }, 2.75 + i * 0.072);
+      });
+      tl.to("#ticks", { opacity: 0, duration: 0.3, ease: "power1.in" }, 20.5);
+
+      // ───────── Scene 1: hook (0 – 2.75) ─────────
+      tl.fromTo("#s1-rule", { scaleY: 0 }, { scaleY: 1, duration: 0.8, ease: "expo.out" }, 0.2);
+      tl.fromTo("#s1-l1", { clipPath: "inset(0 0 0 100%)", x: -30 }, { clipPath: "inset(0 0 0 0%)", x: 0, duration: 0.7, ease: "power3.out" }, 0.35);
+      tl.fromTo("#s1-l2", { scale: 1.9, opacity: 0, filter: "blur(24px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.55, ease: "expo.out" }, 1.4);
+      tl.to("#s1-l2", { scale: 1.05, duration: 1.0, ease: "sine.out" }, 1.96);
+      // the lift: hook blows out forward into the drop
+      tl.to("#s1-head", { scale: 1.25, opacity: 0, filter: "blur(18px)", duration: 0.32, ease: "power2.in" }, 2.5);
+      tl.to("#s1-rule", { scaleY: 0, duration: 0.25, ease: "power2.in" }, 2.5);
+      tl.to("#s1-scrim", { opacity: 0, duration: 0.4, ease: "power1.in" }, 2.45);
+      tl.fromTo("#flash", { opacity: 0 }, { opacity: 0.75, duration: 0.08, ease: "power1.out" }, 2.72); // beat-locked: 2.75s (the lift)
+      tl.to("#flash", { opacity: 0, duration: 0.55, ease: "power2.out" }, 2.81);
+      tl.fromTo("#ascent-wrap", { scale: 1 }, { scale: 1.045, duration: 0.1, ease: "power2.out" }, 2.75);
+      tl.to("#ascent-wrap", { scale: 1, duration: 0.6, ease: "expo.out" }, 2.85);
+
+      // ───────── Scene 2: reveal (2.75 – 7.12) ─────────
+      tl.fromTo("#s2-inner", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 2.75);
+      tl.fromTo("#s2-kicker", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 2.85);
+      tl.fromTo("#s2-t1", { y: 110, opacity: 0, clipPath: "inset(0 0 100% 0)" }, { y: 0, opacity: 1, clipPath: "inset(0 0 0% 0)", duration: 0.6, ease: "expo.out" }, 3.0);
+      tl.fromTo("#s2-t2", { y: 110, opacity: 0, clipPath: "inset(0 0 100% 0)" }, { y: 0, opacity: 1, clipPath: "inset(0 0 0% 0)", duration: 0.6, ease: "expo.out" }, 3.3); // beat-locked: 3.30s
+      tl.fromTo("#s2-underline", { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: "expo.inOut" }, 3.35);
+      tl.fromTo("#s2-sub", { clipPath: "inset(0 0 0 100%)" }, { clipPath: "inset(0 0 0 0%)", duration: 0.7, ease: "power2.out" }, 3.84);
+      tl.fromTo("#s2-stats", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 4.1);
+      // beat-grid: 34 at 4.38s, 11 at 5.47s, 2 at 6.03s — each number rolls up to its value
+      [["#st1", "#st1-n", 34, 4.38], ["#st2", "#st2-n", 11, 5.47], ["#st3", "#st3-n", 2, 6.03]].forEach(([box, num, to, t]) => {
+        const p = { v: 0 };
+        tl.fromTo(p, { v: 0 }, { v: to, duration: 0.55, ease: "power2.out", onUpdate: () => (document.querySelector(num).textContent = ar(Math.round(p.v))) }, t);
+        tl.fromTo(num, { scale: 0.6, y: 30 }, { scale: 1, y: 0, duration: 0.5, ease: "back.out(2.4)" }, t);
+      });
+      tl.fromTo("#s2-tracks span", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.14, ease: "power2.out" }, 6.2);
+
+      // wipe S2 → S3: a rosegold edge then pine sweep right-to-left, then clears to the left
+      tl.fromTo("#wipe-edge", { scaleX: 0 }, { scaleX: 1, duration: 0.24, ease: "power3.in" }, 6.88);
+      tl.fromTo("#wipe-panel", { scaleX: 0 }, { scaleX: 1, duration: 0.22, ease: "power3.in" }, 6.94);
+      tl.set(["#wipe-edge", "#wipe-panel"], { transformOrigin: "left center" }, 7.16);
+      tl.to("#wipe-panel", { scaleX: 0, duration: 0.42, ease: "power3.out", immediateRender: false }, 7.16);
+      tl.to("#wipe-edge", { scaleX: 0, duration: 0.46, ease: "power3.out", immediateRender: false }, 7.2);
+
+      // ───────── Scene 3: the lab (7.12 – 12.03) ─────────
+      tl.fromTo("#s3-kicker", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 7.25);
+      tl.fromTo("#s3-t1", { clipPath: "inset(0 0 0 100%)" }, { clipPath: "inset(0 0 0 0%)", duration: 0.6, ease: "power3.out" }, 7.3);
+      tl.fromTo("#s3-t2", { clipPath: "inset(0 0 0 100%)" }, { clipPath: "inset(0 0 0 0%)", duration: 0.6, ease: "power3.out" }, 7.85);
+      // the card swings up out of perspective
+      tl.fromTo("#s3-stage", { y: 1350, rotationX: 38, rotationY: -22, scale: 0.86, transformPerspective: 1800 }, { y: 0, rotationX: 8, rotationY: -6, scale: 1, duration: 1.0, ease: "expo.out" }, 7.2);
+      tl.to("#s3-stage", { rotationX: 2, rotationY: 5, scale: 1.02, duration: 3.9, ease: "sine.inOut" }, 8.15);
+      // typing ٧٥١٦, one key at a time
+      ["#dg1", "#dg2", "#dg3", "#dg4"].forEach((sel, i) => {
+        tl.fromTo(sel, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.12, ease: "power2.out" }, 7.75 + i * 0.18);
+      });
+      tl.fromTo("#s3-caret", { opacity: 1 }, { opacity: 0, duration: 0.25, repeat: 7, yoyo: true, ease: "steps(1)" }, 8.45);
+      // tap on ÷4
+      tl.set("#s3-tap", { left: 150, top: 438 }, 7.0);
+      tl.fromTo("#s3-tap", { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.22, ease: "power2.out" }, 8.52);
+      tl.to("#s3-tap", { scale: 2.2, opacity: 0, duration: 0.5, ease: "power2.out" }, 8.76);
+      tl.fromTo("#chip4-on", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.25, ease: "back.out(3)" }, 8.74); // beat-locked: 8.74s
+      // the rule looks only at the tail: ١٦
+      tl.fromTo("#s3-tail-hl", { scaleX: 0, transformOrigin: "right center" }, { scaleX: 1, duration: 0.35, ease: "power3.out" }, 9.3);
+      tl.fromTo("#s3-tail", { y: 0 }, { y: -10, duration: 0.18, ease: "power2.out", yoyo: true, repeat: 1 }, 9.3);
+      // beat-grid: step 1 at 9.85s, step 2 at 10.39s, result at 10.94s
+      tl.fromTo("#step1", { clipPath: "inset(0 0 0 100%)", x: -30 }, { clipPath: "inset(0 0 0 0%)", x: 0, duration: 0.5, ease: "power3.out" }, 9.85);
+      tl.fromTo("#step2", { clipPath: "inset(0 0 0 100%)", x: -30 }, { clipPath: "inset(0 0 0 0%)", x: 0, duration: 0.5, ease: "power3.out" }, 10.39);
+      tl.fromTo("#s3-result", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2.2)" }, 10.94);
+      // whip out to the right
+      tl.to("#s3-inner", { x: 1100, skewX: -8, filter: "blur(10px)", duration: 0.3, ease: "power3.in" }, 11.75);
+
+      // ───────── Scene 4: the quiz (12.03 – 16.38) ─────────
+      tl.fromTo("#s4-inner", { x: -1100, skewX: 8, filter: "blur(10px)" }, { x: 0, skewX: 0, filter: "blur(0px)", duration: 0.42, ease: "power3.out" }, 12.03);
+      tl.fromTo("#s4-kicker", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 12.2);
+      tl.fromTo("#s4-t1", { clipPath: "inset(0 0 0 100%)" }, { clipPath: "inset(0 0 0 0%)", duration: 0.55, ease: "power3.out" }, 12.25);
+      tl.fromTo("#s4-t2", { clipPath: "inset(0 0 0 100%)", scale: 1.2 }, { clipPath: "inset(0 0 0 0%)", scale: 1, duration: 0.55, ease: "expo.out" }, 12.57); // beat-locked: 12.57s
+      tl.fromTo("#s4-cardbg", { scaleY: 0.64 }, { scaleY: 0.64, duration: 0.01 }, 12.0);
+      tl.fromTo(["#s4-q", "#o1", "#o2", "#o3", "#o4"], { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.07, ease: "power3.out" }, 12.3);
+      tl.set(["#o2-st", "#o3-st", "#fb2", "#fb3"], { opacity: 0 }, 12.0);
+      // tap the tempting wrong answer, ٨٠٢٢ (it is even — but that is not the rule for ٤)
+      tl.set("#s4-tap", { left: 360, top: 415 }, 12.0);
+      tl.fromTo("#s4-tap", { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.2, ease: "power2.out" }, 12.9);
+      tl.to("#s4-tap", { scale: 2.2, opacity: 0, duration: 0.5, ease: "power2.out" }, 13.12);
+      tl.to("#o3-st", { opacity: 1, duration: 0.15, ease: "power1.out" }, 13.11); // beat-locked: 13.11s
+      tl.to("#o3 .v", { color: "#8f3f2f", duration: 0.15, ease: "power1.out" }, 13.11);
+      tl.to("#o2 .v", { color: "#365d3a", duration: 0.2, ease: "power1.out" }, 13.3);
+      tl.fromTo("#o3", { x: 0 }, { x: 14, duration: 0.06, repeat: 5, yoyo: true, ease: "sine.inOut", immediateRender: false }, 13.16);
+      tl.to("#o2-st", { opacity: 1, duration: 0.2, ease: "power1.out" }, 13.3);
+      tl.to(["#o1", "#o4"], { opacity: 0.45, duration: 0.3, ease: "power1.out" }, 13.3);
+      // why it's wrong: the card grows, rows below make way, the feedback wipes in
+      tl.to("#s4-cardbg", { scaleY: 0.8, duration: 0.45, ease: "power3.inOut" }, 13.55);
+      tl.to("#o4", { y: 176, duration: 0.45, ease: "power3.inOut" }, 13.55);
+      tl.fromTo("#fb3", { opacity: 0, clipPath: "inset(0 0 0 100%)" }, { opacity: 1, clipPath: "inset(0 0 0 0%)", duration: 0.55, ease: "power2.out", immediateRender: false }, 13.67);
+      // why the right one is right
+      tl.to("#s4-cardbg", { scaleY: 0.93, duration: 0.45, ease: "power3.inOut" }, 14.64);
+      tl.to(["#o3", "#fb3"], { y: 136, duration: 0.45, ease: "power3.inOut" }, 14.64);
+      tl.to("#o4", { y: 312, duration: 0.45, ease: "power3.inOut" }, 14.64);
+      tl.fromTo("#fb2", { opacity: 0, clipPath: "inset(0 0 0 100%)" }, { opacity: 1, clipPath: "inset(0 0 0 0%)", duration: 0.55, ease: "power2.out", immediateRender: false }, 14.76);
+      tl.to("#s4-card", { scale: 1.02, duration: 1.4, ease: "sine.inOut" }, 14.9);
+      // zoom through into the medal
+      tl.to("#s4-inner", { scale: 1.7, opacity: 0, filter: "blur(16px)", duration: 0.34, ease: "power3.in" }, 16.1);
+
+      // ───────── Scene 5: the medal (16.38 – 20.75) ─────────
+      tl.fromTo("#s5-inner", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.5, ease: "expo.out" }, 16.3);
+      tl.fromTo("#s5-rays", { rotation: 0 }, { rotation: 40, duration: 4.6, ease: "none" }, 16.3);
+      tl.fromTo("#s5-rays", { scale: 0.6 }, { scale: 1.08, duration: 0.7, ease: "expo.out", immediateRender: false }, 17.47);
+      tl.fromTo("#s5-halo", { scale: 0.5 }, { scale: 1, duration: 0.8, ease: "expo.out" }, 17.4);
+      tl.fromTo("#s5-kicker", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 17.6);
+      tl.fromTo("#s5-name", { opacity: 0, clipPath: "inset(0 0 0 100%)" }, { opacity: 1, clipPath: "inset(0 0 0 0%)", duration: 0.6, ease: "power3.out" }, 17.75);
+      tl.fromTo(["#s5-xp", "#s5-bar"], { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.35, stagger: 0.08, ease: "power3.out" }, 17.95);
+      const xp = { v: 0 };
+      tl.fromTo(xp, { v: 0 }, { v: 560, duration: 0.9, ease: "power2.out", onUpdate: () => (document.getElementById("s5-xpn").textContent = "+" + ar(Math.round(xp.v))) }, 18.03); // beat-grid: 18.03s
+      tl.fromTo("#s5-fill", { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: "power2.out" }, 18.03);
+      tl.fromTo("#s5-level", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2.6)" }, 19.12); // beat-grid: 19.12s level up
+      tl.fromTo("#s5-streak", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2.6)" }, 19.66); // beat-grid: 19.66s
+      tl.fromTo("#s5-note", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power1.out" }, 19.8);
+      // iris out through a diamond ◆ onto the outro
+      tl.to("#s5-text", { opacity: 0, y: 40, duration: 0.3, ease: "power2.in" }, 20.45);
+      tl.to("#badge-wrap", { scale: 0.2, opacity: 0, duration: 0.35, ease: "power3.in" }, 20.45);
+      tl.set("#s5-text", { opacity: 0 }, 0);
+      tl.set("#s5-text", { opacity: 1 }, 16.3);
+
+      // ───────── Scene 6: outro (20.75 – 26.2) ─────────
+      tl.fromTo("#s6-inner", { clipPath: "polygon(50% 34%, 50.5% 35%, 50% 36%, 49.5% 35%)" }, { clipPath: "polygon(50% -120%, 190% 35%, 50% 190%, -90% 35%)", duration: 0.7, ease: "expo.inOut" }, 20.6);
+      tl.fromTo("#s6-halo", { scale: 0.6 }, { scale: 1, duration: 1.2, ease: "expo.out" }, 21.2);
+      tl.fromTo("#s6-n1", { y: 90, opacity: 0, clipPath: "inset(0 0 100% 0)" }, { y: 0, opacity: 1, clipPath: "inset(0 0 0% 0)", duration: 0.6, ease: "expo.out" }, 21.6);
+      tl.fromTo("#s6-n2", { y: 90, opacity: 0, clipPath: "inset(0 0 100% 0)" }, { y: 0, opacity: 1, clipPath: "inset(0 0 0% 0)", duration: 0.6, ease: "expo.out" }, 21.84); // beat-locked: 21.84s (gold stamp)
+      tl.fromTo("#s6-tag", { clipPath: "inset(0 0 0 100%)" }, { clipPath: "inset(0 0 0 0%)", duration: 0.6, ease: "power2.out" }, 22.38);
+      tl.fromTo("#s6-cta", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(2.2)" }, 22.93); // beat-grid: 22.93s
+      tl.to("#s6-cta", { scale: 0.96, duration: 0.1, ease: "power1.out" }, 23.5);
+      tl.to("#s6-cta", { scale: 1, duration: 0.3, ease: "back.out(3)" }, 23.61);
+      tl.fromTo("#s6-free", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 23.48);
+      tl.fromTo("#s6-pills span", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.18, ease: "power2.out" }, 24.02);
+      tl.fromTo(["#s6-url", "#s6-legal"], { opacity: 0 }, { opacity: 1, duration: 0.5, stagger: 0.15, ease: "power1.out" }, 24.57);
+      tl.fromTo(".reg", { rotation: 0 }, { rotation: 90, duration: 0.6, ease: "power3.inOut", immediateRender: false }, 21.31);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

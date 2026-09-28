@@ -1,0 +1,10 @@
+.DS_Store
+__pycache__/
+*.pyc
+*.key
+.env*
+brag-output*/
+voiceover/
+snapshots/
+out_*/
+test_*/

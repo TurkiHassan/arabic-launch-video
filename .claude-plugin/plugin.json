@@ -1,0 +1,13 @@
+{
+  "name": "arabic-launch-video",
+  "description": "إعلانات فيديو عربية بتعليق صوتي فصيح وموشن RTL — ومهارة مستقلة لإضافة تعليق عربي على أي فيديو. Arabic launch videos with a فصحى voiceover, built with Claude Code + Hyperframes.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Turki Hassan",
+    "url": "https://github.com/TurkiHassan"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/TurkiHassan/arabic-launch-video",
+  "repository": "https://github.com/TurkiHassan/arabic-launch-video",
+  "keywords": ["arabic", "video", "voiceover", "tts", "rtl", "hyperframes", "ad", "عربي", "تعليق-صوتي"]
+}

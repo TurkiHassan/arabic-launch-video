@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>مستخرج PDF — إعلان</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="audio-bass.js"></script>
+    <style>
+      @font-face { font-family: "Thmanyah Sans"; src: url("assets/fonts/thmanyah-sans-400.woff2") format("woff2"); font-weight: 400; }
+      @font-face { font-family: "Thmanyah Sans"; src: url("assets/fonts/thmanyah-sans-500.woff2") format("woff2"); font-weight: 500; }
+      @font-face { font-family: "Thmanyah Sans"; src: url("assets/fonts/thmanyah-sans-700.woff2") format("woff2"); font-weight: 700; }
+      @font-face { font-family: "Thmanyah Display"; src: url("assets/fonts/thmanyah-serif-display-700.woff2") format("woff2"); font-weight: 700; }
+      @font-face { font-family: "Thmanyah Display"; src: url("assets/fonts/thmanyah-serif-display-900.woff2") format("woff2"); font-weight: 900; }
+
+      :root {
+        --canvas: #fbf7ef;
+        --ink: #25271f;
+        --muted: #5f6256;
+        --accent: #52643e;
+        --sage: #d5ddbe;
+        --peach: #faecd7;
+        --surface: #ffffff;
+        --line: #e6e2d6;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--canvas);
+        color: var(--ink);
+        font-family: "Thmanyah Sans", system-ui, sans-serif;
+      }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--canvas); }
+      .clip { position: absolute; inset: 0; }
+      .inner { position: absolute; inset: 0; direction: rtl; }
+      .display { font-family: "Thmanyah Display", serif; font-weight: 900; letter-spacing: 0; }
+
+      /* ---------- persistent background ---------- */
+      #bg .glow { position: absolute; border-radius: 50%; }
+      #glow-sage {
+        width: 1500px; height: 1500px; left: -520px; top: 980px;
+        background: radial-gradient(circle, rgba(185, 201, 150, 0.85) 0%, rgba(213, 221, 190, 0.45) 38%, rgba(251, 247, 239, 0) 70%);
+      }
+      #glow-peach {
+        width: 1300px; height: 1300px; right: -560px; top: -420px;
+        background: radial-gradient(circle, rgba(247, 214, 170, 0.9) 0%, rgba(250, 236, 215, 0.5) 40%, rgba(251, 247, 239, 0) 70%);
+      }
+      #ghost { position: absolute; inset: 0; }
+      #ghost .sheet { position: absolute; display: block; border-radius: 40px; border: 4px solid rgba(82, 100, 62, 0.16); }
+      #ghost .sh1 { width: 520px; height: 700px; left: -170px; top: 1280px; }
+      #ghost .sh2 { width: 440px; height: 600px; right: -150px; top: 120px; }
+      #grain {
+        position: absolute; inset: 0; opacity: 0.18; mix-blend-mode: multiply;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.3  0 0 0 0 0.3  0 0 0 0 0.25  0 0 0 0.55 0'/></filter><rect width='240' height='240' filter='url(%23n)'/></svg>");
+      }
+      #brand-mark {
+        direction: rtl; position: absolute; top: 96px; right: 90px; display: flex; align-items: center; gap: 18px;
+        font-size: 34px; font-weight: 700; color: var(--ink);
+      }
+      #brand-mark img { width: 64px; height: 64px; border-radius: 15px; display: block; }
+      .rule { position: absolute; left: 90px; right: 90px; height: 3px; background: var(--ink); opacity: 0.12; transform-origin: right center; }
+
+      /* ---------- shared ---------- */
+      .chip {
+        display: inline-flex; align-items: center; gap: 14px;
+        padding: 16px 30px; border-radius: 999px; background: var(--sage);
+        font-size: 34px; font-weight: 700; color: var(--ink);
+      }
+      .chip .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); display: block; }
+      .card {
+        background: var(--surface); border-radius: 48px;
+        box-shadow: 0 30px 80px rgba(60, 58, 40, 0.14), 0 0 0 3px rgba(37, 39, 31, 0.06);
+      }
+
+      /* ---------- scene 1: locked page ---------- */
+      #s1-head { position: absolute; top: 260px; right: 90px; left: 90px; }
+      #s1-head .display { font-size: 150px; line-height: 1.12; display: block; }
+      #s1-head .l2 { color: var(--accent); }
+      #s1-page {
+        position: absolute; left: 170px; top: 820px; width: 740px; height: 960px; padding: 70px 64px;
+        border-radius: 28px;
+      }
+      #s1-page .p-title { font-size: 46px; font-weight: 700; margin-bottom: 10px; }
+      #s1-page .p-sub { font-size: 28px; color: var(--muted); margin-bottom: 44px; }
+      #s1-page .p-text { font-size: 30px; line-height: 1.9; color: #3d3f36; }
+      #s1-page .bars { display: flex; align-items: flex-end; gap: 22px; height: 180px; margin-top: 50px; }
+      #s1-page .bars span { display: block; width: 70px; background: var(--sage); border-radius: 10px 10px 0 0; }
+      #s1-blurwrap { filter: blur(7px); }
+      #s1-lock {
+        position: absolute; left: 400px; top: 1130px; width: 280px; height: 280px; border-radius: 50%;
+        background: var(--ink); display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 30px 70px rgba(37, 39, 31, 0.35);
+      }
+      #s1-lock svg { width: 150px; height: 150px; display: block; overflow: visible; }
+
+      /* ---------- scene 2: the app ---------- */
+      #s2-head { position: absolute; top: 250px; right: 90px; left: 90px; }
+      #s2-head .display { font-size: 132px; line-height: 1.1; display: block; }
+      #s2-head .sub { font-size: 44px; color: var(--muted); margin-top: 18px; display: block; }
+      #s2-phone {
+        position: absolute; left: 225px; top: 620px; width: 630px; height: 1370px;
+        border-radius: 96px; background: #1b1c17; padding: 15px;
+        box-shadow: 0 50px 120px rgba(37, 39, 31, 0.3);
+      }
+      #s2-screen { position: relative; width: 600px; height: 1340px; border-radius: 82px; overflow: hidden; background: var(--canvas); }
+      #s2-screen img { width: 600px; height: auto; display: block; }
+      #s2-press {
+        position: absolute; left: 23px; top: 251px; width: 554px; height: 120px; border-radius: 34px;
+        background: rgba(255, 255, 255, 0.28); opacity: 0;
+      }
+      #s2-tap {
+        position: absolute; left: 240px; top: 250px; width: 120px; height: 120px; border-radius: 50%;
+        border: 6px solid var(--peach); background: rgba(250, 236, 215, 0.35); opacity: 0;
+      }
+
+      /* ---------- scene 3: extraction ---------- */
+      #s3-head { position: absolute; top: 250px; right: 90px; left: 90px; }
+      #s3-head .display { font-size: 112px; line-height: 1.12; display: block; margin-top: 30px; }
+      #s3-file { position: absolute; top: 640px; left: 90px; right: 90px; height: 270px; padding: 34px 40px; display: flex; gap: 36px; align-items: center; }
+      #s3-thumb {
+        position: relative; width: 150px; height: 200px; border-radius: 16px; background: #fdfcf8; overflow: hidden;
+        box-shadow: 0 0 0 3px var(--line); flex: 0 0 auto; padding: 22px 16px;
+      }
+      #s3-thumb i { display: block; height: 8px; border-radius: 4px; background: #c9c7bb; margin-bottom: 10px; }
+      #s3-thumb .tb { display: flex; align-items: flex-end; gap: 8px; height: 50px; margin-top: 16px; }
+      #s3-thumb .tb b { display: block; width: 16px; background: var(--sage); }
+      #s3-scan {
+        position: absolute; left: 0; right: 0; top: 0; height: 26px;
+        background: linear-gradient(180deg, rgba(82, 100, 62, 0) 0%, rgba(82, 100, 62, 0.55) 80%, rgba(82, 100, 62, 0.9) 100%);
+      }
+      #s3-file .meta .t { font-size: 44px; font-weight: 700; }
+      #s3-file .meta .m { font-size: 30px; color: var(--muted); margin-top: 8px; direction: rtl; }
+      #s3-progress { margin-top: 22px; width: 560px; height: 14px; border-radius: 7px; background: #ece9df; overflow: hidden; }
+      #s3-progress-fill { width: 100%; height: 100%; background: var(--accent); transform-origin: right center; }
+
+      #s3-result { position: absolute; top: 960px; left: 90px; right: 90px; height: 850px; padding: 46px 52px; }
+      #s3-status { position: relative; height: 110px; }
+      #s3-status .row { position: absolute; inset: 0; display: flex; align-items: center; gap: 24px; }
+      #s3-check { width: 70px; height: 70px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+      #s3-check svg { width: 40px; height: 40px; display: block; }
+      #s3-status .st { font-size: 42px; font-weight: 700; }
+      #s3-status .sm { font-size: 28px; color: var(--muted); margin-top: 4px; }
+      #s3-dots { display: flex; gap: 12px; }
+      #s3-dots span { display: block; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); }
+      #s3-doc { margin-top: 26px; border-radius: 34px; box-shadow: 0 0 0 3px var(--line); padding: 38px 42px; height: 470px; }
+      #s3-doc .ln { display: block; }
+      #s3-doc .h1 { font-size: 54px; font-weight: 700; margin-bottom: 18px; }
+      #s3-doc .tx { font-size: 34px; line-height: 1.75; color: #34362d; }
+      #s3-doc .h2 { font-size: 42px; font-weight: 700; margin-top: 22px; margin-bottom: 8px; }
+      #s3-doc .li { font-size: 34px; color: var(--muted); }
+      #s3-actions { display: flex; gap: 26px; margin-top: 30px; }
+      #s3-actions div {
+        flex: 1; height: 96px; border-radius: 48px; background: #e9eadf; box-shadow: 0 0 0 3px #d6d9c8;
+        display: flex; align-items: center; justify-content: center; font-size: 38px; font-weight: 700; color: var(--accent);
+      }
+
+      /* ---------- scene 4: page packs ---------- */
+      #s4-head { position: absolute; top: 250px; right: 90px; left: 90px; }
+      #s4-head .display { font-size: 132px; line-height: 1.12; display: block; }
+      #s4-head .l2 { color: var(--accent); }
+      #s4-head .sub { font-size: 40px; color: var(--muted); margin-top: 26px; display: block; }
+      .pack { position: absolute; left: 90px; right: 90px; height: 250px; padding: 0 60px; display: flex; align-items: center; justify-content: space-between; }
+      .pack .num { font-family: "Thmanyah Sans", sans-serif; font-weight: 700; font-size: 124px; line-height: 1; direction: ltr; }
+      .pack .unit { font-size: 40px; color: var(--muted); margin-inline-start: 18px; }
+      .pack .lbl { font-size: 36px; color: var(--muted); margin-top: 16px; }
+      .pack .radio { width: 70px; height: 70px; border-radius: 50%; border: 5px solid #9a9c90; flex: 0 0 auto; position: relative; }
+      .pack .radio b { position: absolute; inset: 9px; border-radius: 50%; background: var(--accent); display: block; }
+      #pack-1 { top: 1000px; }
+      #pack-2 { top: 1290px; }
+      #pack-3 { top: 1580px; }
+      #pack-2-ring { position: absolute; inset: 0; border-radius: 48px; box-shadow: 0 0 0 6px var(--accent); opacity: 0; }
+
+      /* ---------- scene 5: outro ---------- */
+      #s5-wrap { position: absolute; left: 90px; right: 90px; top: 560px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+      #s5-icon { width: 300px; height: 300px; border-radius: 68px; display: block; box-shadow: 0 40px 90px rgba(37, 39, 31, 0.25); }
+      #s5-name { font-size: 150px; line-height: 1.1; margin-top: 70px; display: block; }
+      #s5-tag { font-size: 46px; color: var(--muted); margin-top: 26px; display: block; }
+      #s5-cta {
+        margin-top: 90px; padding: 34px 70px; border-radius: 999px; background: var(--ink); color: var(--canvas);
+        font-size: 46px; font-weight: 700; display: block;
+      }
+      #s5-feat { margin-top: 70px; display: flex; gap: 22px; justify-content: center; }
+      #s5-feat span { display: block; padding: 14px 28px; border-radius: 999px; box-shadow: 0 0 0 3px #cfd5b8; font-size: 32px; font-weight: 500; color: var(--ink); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-width="1080" data-height="1920" data-duration="25">
+      <!-- persistent background -->
+      <section id="bg" class="clip" data-start="0" data-duration="25" data-track-index="0">
+        <div id="glow-peach" class="glow" data-layout-allow-overflow></div>
+        <div id="glow-sage" class="glow" data-layout-allow-overflow></div>
+        <div id="ghost" data-layout-allow-overflow data-layout-allow-occlusion><i class="sheet sh1"></i><i class="sheet sh2"></i></div>
+        <div id="grain"></div>
+        <div id="brand-mark"><img src="assets/img/icon-mark.png" alt="" /><span>مستخرج PDF</span></div>
+      </section>
+
+      <!-- Scene 1: locked page -->
+      <section id="s1" class="clip" data-start="0" data-duration="4.4" data-track-index="1">
+        <div class="inner" id="s1-inner">
+          <div id="s1-head">
+            <span class="display l1" id="s1-l1">نصّك محبوس</span>
+            <span class="display l2" id="s1-l2">داخل PDF؟</span>
+          </div>
+          <div id="s1-page" class="card">
+            <div id="s1-blurwrap">
+              <div class="p-title">تقرير الأداء الربعي</div>
+              <div class="p-sub">الربع الثالث — ملخص الأنشطة التشغيلية</div>
+              <div class="p-text">يعرض هذا التقرير ملخص الأنشطة التشغيلية خلال الربع الثالث، مع مؤشرات الإنجاز الرئيسية والتوصيات المقترحة للمرحلة القادمة.</div>
+              <div class="bars"><span style="height: 60px"></span><span style="height: 95px"></span><span style="height: 80px"></span><span style="height: 130px"></span><span style="height: 115px"></span><span style="height: 170px"></span></div>
+            </div>
+          </div>
+          <div id="s1-lock">
+            <svg viewBox="0 0 100 100">
+              <path id="s1-shackle" d="M30 46 V32 a20 20 0 0 1 40 0 V46" fill="none" stroke="#fbf7ef" stroke-width="9" stroke-linecap="round" />
+              <rect x="20" y="44" width="60" height="46" rx="10" fill="#fbf7ef" />
+              <circle cx="50" cy="64" r="6" fill="#25271f" />
+              <rect x="47" y="64" width="6" height="13" rx="3" fill="#25271f" />
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scene 2: the app -->
+      <section id="s2" class="clip" data-start="4.08" data-duration="4.0" data-track-index="2">
+        <div class="inner" id="s2-inner">
+          <div id="s2-head">
+            <span class="display" id="s2-title">مستخرج PDF</span>
+            <span class="sub" id="s2-sub">استخراج النص العربي والإنجليزي</span>
+          </div>
+          <div id="s2-phone">
+            <div id="s2-screen">
+              <img src="assets/img/home.png" alt="" />
+              <div id="s2-press"></div>
+              <div id="s2-tap"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scene 3: extraction -->
+      <section id="s3" class="clip" data-start="7.77" data-duration="8.2" data-track-index="3">
+        <div class="inner" id="s3-inner">
+          <div id="s3-head">
+            <span class="chip" id="s3-chip"><span class="dot"></span>عربي أو ممسوح ضوئيًا</span>
+            <span class="display" id="s3-title">من صفحة… إلى نص</span>
+          </div>
+          <div id="s3-file" class="card">
+            <div id="s3-thumb">
+              <i style="width: 70%"></i><i style="width: 100%"></i><i style="width: 88%"></i><i style="width: 94%"></i><i style="width: 60%"></i>
+              <div class="tb"><b style="height: 18px"></b><b style="height: 28px"></b><b style="height: 24px"></b><b style="height: 40px"></b><b style="height: 50px"></b></div>
+              <div id="s3-scan"></div>
+            </div>
+            <div class="meta">
+              <div class="t">تقرير الأداء الربعي</div>
+              <div class="m">&#x200F;PDF · 5 صفحات · 57 كيلوبايت</div>
+              <div id="s3-progress"><div id="s3-progress-fill"></div></div>
+            </div>
+          </div>
+          <div id="s3-result" class="card">
+            <div id="s3-status">
+              <div class="row" id="s3-working">
+                <div id="s3-dots"><span></span><span></span><span></span></div>
+                <div class="st">جارٍ الاستخراج…</div>
+              </div>
+              <div class="row" id="s3-done">
+                <div id="s3-check"><svg viewBox="0 0 40 40"><path d="M10 21 L17 28 L30 13" fill="none" stroke="#fbf7ef" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" /></svg></div>
+                <div>
+                  <div class="st">اكتمل الاستخراج</div>
+                  <div class="sm">&#x200F;5 صفحات · 42 كلمة · حُفظ في مكتبتك</div>
+                </div>
+              </div>
+            </div>
+            <div id="s3-doc">
+              <span class="ln h1" id="s3-t1">تقرير الأداء الربعي</span>
+              <span class="ln tx" id="s3-t2">يعرض هذا التقرير ملخص الأنشطة التشغيلية</span>
+              <span class="ln tx" id="s3-t3">خلال الربع الثالث، مع مؤشرات الإنجاز</span>
+              <span class="ln tx" id="s3-t4">الرئيسية والتوصيات المقترحة.</span>
+              <span class="ln h2" id="s3-t5">أبرز النتائج</span>
+              <span class="ln li" id="s3-t6">• ارتفاع نسبة الإنجاز إلى 87٪</span>
+            </div>
+            <div id="s3-actions">
+              <div id="s3-copy">نسخ</div>
+              <div id="s3-share">مشاركة</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scene 4: page packs -->
+      <section id="s4" class="clip" data-start="15.65" data-duration="5.03" data-track-index="4">
+        <div class="inner" id="s4-inner">
+          <div id="s4-head">
+            <span class="chip" id="s4-chip"><span class="dot"></span>رصيد حسب حاجتك</span>
+            <span class="display" id="s4-l1" style="margin-top: 34px">صفحات أكثر.</span>
+            <span class="display l2" id="s4-l2">عمل متواصل.</span>
+            <span class="sub" id="s4-sub">شراء لمرة واحدة، بلا اشتراك أو تجديد تلقائي.</span>
+          </div>
+          <div class="pack card" id="pack-1">
+            <div><div><span class="num">100</span><span class="unit">صفحة</span></div><div class="lbl">للمستندات القليلة</div></div>
+            <div class="radio"></div>
+          </div>
+          <div class="pack card" id="pack-2">
+            <div id="pack-2-ring"></div>
+            <div><div><span class="num">400</span><span class="unit">صفحة</span></div><div class="lbl">للاستخدام المتكرر</div></div>
+            <div class="radio" id="pack-2-radio"><b id="pack-2-dot"></b></div>
+          </div>
+          <div class="pack card" id="pack-3">
+            <div><div><span class="num">1,000</span><span class="unit">صفحة</span></div><div class="lbl">للمشاريع الكبيرة</div></div>
+            <div class="radio"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scene 5: outro -->
+      <section id="s5" class="clip" data-start="20.36" data-duration="4.64" data-track-index="5">
+        <div class="inner" id="s5-inner">
+          <div id="s5-wrap">
+            <img id="s5-icon" src="assets/img/icon.png" alt="" />
+            <span class="display" id="s5-name">مستخرج PDF</span>
+            <span id="s5-tag">حوّل PDF إلى نص قابل للتعديل</span>
+            <div id="s5-feat"><span id="s5-f1">عربي</span><span id="s5-f2">English</span><span id="s5-f3">بلا اشتراك</span></div>
+            <span id="s5-cta">حمّله الآن من App Store</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Voice (Gemini TTS, voice Charon, MSA) -->
+      <audio id="vo1" src="assets/voice/vo1.mp3" data-start="0.3" data-duration="3.68" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo2" src="assets/voice/vo2.mp3" data-start="4.45" data-duration="3.26" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo3" src="assets/voice/vo3.mp3" data-start="8.1" data-duration="7.27" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo4" src="assets/voice/vo4.mp3" data-start="16.0" data-duration="4.32" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo5" src="assets/voice/vo5.mp3" data-start="20.8" data-duration="3.53" data-track-index="10" data-volume="1"></audio>
+
+      <!-- Music bed, ducked under the voice -->
+      <audio
+        id="music"
+        src="assets/music/happy-beats-business-moves-vol-9-by-ende-dot-app.mp3"
+        data-start="0"
+        data-duration="25"
+        data-track-index="11"
+        data-volume="1"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0},{"t":0.25,"v":0.2},{"t":4.0,"v":0.2},{"t":4.2,"v":0.42},{"t":4.45,"v":0.2},{"t":7.7,"v":0.2},{"t":7.9,"v":0.42},{"t":8.1,"v":0.2},{"t":15.4,"v":0.2},{"t":15.7,"v":0.45},{"t":16.0,"v":0.2},{"t":20.35,"v":0.2},{"t":20.55,"v":0.42},{"t":20.8,"v":0.2},{"t":24.35,"v":0.3},{"t":25,"v":0}]}]}'
+      ></audio>
+
+      <!-- SFX -->
+      <audio id="sfx-cut1" src="assets/sfx/impactSoft_medium_001.ogg" data-start="4.23" data-duration="0.3" data-track-index="12" data-volume="0.45"></audio>
+      <audio id="sfx-tap" src="assets/sfx/click_003.ogg" data-start="6.86" data-duration="0.2" data-track-index="12" data-volume="0.6"></audio>
+      <audio id="sfx-cut2" src="assets/sfx/impactSoft_medium_004.ogg" data-start="7.92" data-duration="0.3" data-track-index="12" data-volume="0.45"></audio>
+      <audio id="sfx-done" src="assets/sfx/impactBell_heavy_000.ogg" data-start="13.17" data-duration="1.2" data-track-index="12" data-volume="0.22"></audio>
+      <audio id="sfx-cut3" src="assets/sfx/impactSoft_medium_001.ogg" data-start="15.81" data-duration="0.3" data-track-index="12" data-volume="0.45"></audio>
+      <audio id="sfx-card1" src="assets/sfx/card-slide-1.ogg" data-start="16.34" data-duration="0.5" data-track-index="13" data-volume="0.3"></audio>
+      <audio id="sfx-card2" src="assets/sfx/card-slide-1.ogg" data-start="17.38" data-duration="0.5" data-track-index="13" data-volume="0.3"></audio>
+      <audio id="sfx-card3" src="assets/sfx/card-slide-1.ogg" data-start="18.44" data-duration="0.5" data-track-index="13" data-volume="0.3"></audio>
+      <audio id="sfx-select" src="assets/sfx/click_003.ogg" data-start="19.48" data-duration="0.2" data-track-index="12" data-volume="0.5"></audio>
+      <audio id="sfx-logo" src="assets/sfx/impactBell_heavy_000.ogg" data-start="20.54" data-duration="1.5" data-track-index="12" data-volume="0.32"></audio>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+
+      // ---------- background ambience ----------
+      tl.fromTo("#glow-peach", { x: 0, y: 0 }, { x: -80, y: 60, duration: 25, ease: "sine.inOut" }, 0);
+      tl.fromTo("#ghost .sh1", { rotation: -14, y: 0 }, { rotation: -6, y: -90, duration: 25, ease: "none" }, 0);
+      tl.fromTo("#ghost .sh2", { rotation: 12, y: 0 }, { rotation: 5, y: 70, duration: 25, ease: "none" }, 0);
+      tl.fromTo("#brand-mark", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 4.28);
+      tl.to("#brand-mark", { opacity: 0, duration: 0.3, ease: "power1.in" }, 20.26);
+
+      // audio-reactive: music bass makes the sage glow breathe (subtle)
+      const BASS = window.AUDIO_BASS || [];
+      for (let f = 0; f < BASS.length; f++) {
+        tl.call(
+          (function (b) {
+            return function () {
+              gsap.set("#glow-sage", { scale: 1 + b * 0.1, opacity: 0.7 + b * 0.3 });
+            };
+          })(BASS[f]),
+          [],
+          f / 30,
+        );
+      }
+
+      // ---------- Scene 1: locked page (0 – 3.70) ----------
+      tl.fromTo("#s1-l1", { y: 70, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.15);
+      tl.fromTo("#s1-l2", { y: 70, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.35);
+      tl.fromTo("#s1-page", { y: 260, rotation: -9, opacity: 0 }, { y: 0, rotation: -4, opacity: 1, duration: 0.8, ease: "expo.out" }, 0.25);
+      tl.fromTo("#s1-lock", { scale: 0.2, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(2)" }, 0.9);
+      tl.to("#s1-lock", { rotation: -8, duration: 0.08, ease: "power1.inOut" }, 2.8);
+      tl.to("#s1-lock", { rotation: 8, duration: 0.12, ease: "power1.inOut" }, 2.88);
+      tl.to("#s1-lock", { rotation: -5, duration: 0.1, ease: "power1.inOut" }, 3.0);
+      tl.to("#s1-lock", { rotation: 0, duration: 0.1, ease: "power1.inOut" }, 3.1);
+      tl.to("#s1-shackle", { y: -14, duration: 0.25, ease: "back.out(3)" }, 3.75);
+      tl.to("#s1-blurwrap", { filter: "blur(0px)", duration: 0.35, ease: "power2.out" }, 3.8);
+      tl.to("#s1-lock", { scale: 0.6, opacity: 0, duration: 0.3, ease: "power2.in" }, 3.9);
+      // exit
+      tl.to("#s1-inner", { x: 160, opacity: 0, duration: 0.4, ease: "power2.in" }, 3.98);
+
+      // ---------- Scene 2: the app (3.70 – 7.40) ----------
+      tl.fromTo("#s2-inner", { x: -160, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 4.23); // beat-locked: 4.23s
+      tl.fromTo("#s2-title", { y: 40 }, { y: 0, duration: 0.6, ease: "expo.out" }, 4.25);
+      tl.fromTo("#s2-sub", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 4.53);
+      tl.fromTo("#s2-phone", { y: 240, rotation: 3 }, { y: 0, rotation: 0, duration: 0.9, ease: "expo.out" }, 4.25);
+      tl.fromTo("#s2-screen img", { scale: 1 }, { scale: 1.03, duration: 3.6, ease: "none" }, 4.33);
+      // simulated tap on the extract card
+      tl.fromTo("#s2-tap", { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.25, ease: "power2.out" }, 6.63);
+      tl.to("#s2-press", { opacity: 1, duration: 0.12, ease: "power1.out" }, 6.87); // beat-locked: 6.87s
+      tl.to("#s2-tap", { scale: 2.4, opacity: 0, duration: 0.5, ease: "power2.out" }, 6.89);
+      tl.to("#s2-press", { opacity: 0, duration: 0.3, ease: "power1.in" }, 7.03);
+      tl.to("#s2-phone", { scale: 0.97, duration: 0.12, ease: "power1.out" }, 6.87);
+      tl.to("#s2-phone", { scale: 1, duration: 0.3, ease: "back.out(2)" }, 6.99);
+      tl.to("#s2-inner", { x: 160, opacity: 0, duration: 0.4, ease: "power2.in" }, 7.58);
+
+      // ---------- Scene 3: extraction (7.40 – 14.76) ----------
+      tl.fromTo("#s3-inner", { x: -160, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 7.92); // beat-locked: 7.92s
+      tl.fromTo("#s3-chip", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, 8.02);
+      tl.fromTo("#s3-title", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "expo.out" }, 8.12);
+      tl.fromTo("#s3-file", { y: 80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 8.22);
+      tl.fromTo("#s3-result", { y: 140, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 8.42);
+      // scan + progress
+      tl.fromTo("#s3-scan", { y: -30 }, { y: 200, duration: 0.9, ease: "sine.inOut", repeat: 1, yoyo: true }, 8.62);
+      tl.fromTo("#s3-progress-fill", { scaleX: 0 }, { scaleX: 1, duration: 1.8, ease: "power1.inOut" }, 8.62);
+      tl.fromTo("#s3-dots span", { opacity: 0.25 }, { opacity: 1, duration: 0.3, stagger: 0.15, repeat: 4, yoyo: true, ease: "sine.inOut" }, 8.52);
+      tl.set("#s3-done", { opacity: 0 }, 7.8);
+      // extracted text writes in, line by line (RTL wipe), each line holds
+      const lines = ["#s3-t1", "#s3-t2", "#s3-t3", "#s3-t4", "#s3-t5", "#s3-t6"];
+      const lineAt = [10.02, 10.67, 11.22, 11.77, 12.32, 12.72];
+      lines.forEach((sel, i) => {
+        tl.fromTo(sel, { clipPath: "inset(0 0 0 100%)", opacity: 0.2 }, { clipPath: "inset(0 0 0 0%)", opacity: 1, duration: 0.55, ease: "power2.out" }, lineAt[i]);
+      });
+      // success check on the strong cue
+      tl.to("#s3-working", { opacity: 0, y: -20, duration: 0.25, ease: "power1.in" }, 12.97);
+      tl.fromTo("#s3-done", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 13.12);
+      tl.fromTo("#s3-check", { scale: 0.3 }, { scale: 1, duration: 0.5, ease: "back.out(2.5)" }, 13.17); // beat-locked: 13.17s
+      tl.fromTo("#s3-actions div", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, stagger: 0.12, ease: "power2.out" }, 13.62);
+      tl.to("#s3-inner", { x: 160, opacity: 0, duration: 0.4, ease: "power2.in" }, 15.45);
+
+      // ---------- Scene 4: page packs (14.76 – 19.48) ----------
+      tl.fromTo("#s4-inner", { x: -160, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 15.81); // beat-locked: 15.81s
+      tl.fromTo("#s4-chip", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, 15.85);
+      tl.fromTo("#s4-l1", { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "expo.out" }, 15.9);
+      tl.fromTo("#s4-l2", { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "expo.out" }, 16.05);
+      tl.fromTo("#s4-sub", { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "power1.out" }, 16.25);
+      // beat-grid: pack 1 at 16.34s, pack 2 at 17.38s, pack 3 at 18.44s (every other beat; all hold)
+      [["#pack-1", 16.34], ["#pack-2", 17.38], ["#pack-3", 18.44]].forEach(([sel, t]) => {
+        tl.fromTo(sel, { x: -220, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "expo.out" }, t);
+      });
+      // select the 400 pack
+      tl.fromTo("#pack-2-dot", { scale: 0 }, { scale: 1, duration: 0.3, ease: "back.out(3)" }, 19.48);
+      tl.to("#pack-2-ring", { opacity: 1, duration: 0.25, ease: "power1.out" }, 19.48);
+      tl.to("#pack-2", { scale: 1.03, duration: 0.25, ease: "power2.out" }, 19.48);
+      tl.to("#s4-inner", { x: 160, opacity: 0, duration: 0.4, ease: "power2.in" }, 20.15);
+
+      // ---------- Scene 5: outro (19.48 – 24.00) ----------
+      tl.fromTo("#s5-icon", { scale: 0.5, opacity: 0, rotation: -8 }, { scale: 1, opacity: 1, rotation: 0, duration: 0.7, ease: "back.out(1.8)" }, 20.54); // beat-locked: 20.54s
+      tl.fromTo("#s5-name", { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "expo.out" }, 20.76);
+      tl.fromTo("#s5-tag", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power2.out" }, 21.01);
+      tl.fromTo("#s5-feat span", { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, stagger: 0.12, ease: "power2.out" }, 21.36);
+      tl.fromTo("#s5-cta", { scale: 0.85, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(2)" }, 21.96);
+      tl.fromTo("#s5-icon", { y: 0 }, { y: -12, duration: 1.4, ease: "sine.inOut", repeat: 1, yoyo: true, immediateRender: false }, 22.26);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
